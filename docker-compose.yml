@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:17
+    container_name: rss-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rssuser
+      POSTGRES_PASSWORD: rsspass
+      POSTGRES_DB: rssdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - rssfeed-network
+
+  backend:
+    image: skillseries/rss-backend
+    container_name: rss-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "9000:80"
+    networks:
+      - rssfeed-network
+
+  viewer:
+    image: skillseries/rss-viewer
+    container_name: rss-viewer
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    networks:
+      - rssfeed-network
+
+networks:
+  rssfeed-network:
+    driver: bridge
+
+volumes:
+  db-data:
